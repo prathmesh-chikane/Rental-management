@@ -83,18 +83,12 @@ export default function DashboardPage() {
               <CardTitle className="text-lg font-semibold text-slate-900">
                 Upcoming tasks
               </CardTitle>
-              <p className="mt-1 text-sm text-slate-500">
-                Keep your properties running smoothly
-              </p>
             </div>
             <div className="rounded-lg bg-violet-50 p-2 text-violet-700">
               <ClipboardList className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="mb-3 mt-4 inline-flex rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
-              {tasks.length} pending
-            </div>
             <ul className="divide-y divide-slate-100">
               {tasks.map((task, index) => (
                 <li key={task} className="flex items-start gap-3 py-4">
