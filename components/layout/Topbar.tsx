@@ -18,9 +18,9 @@ export default function Topbar() {
         <button className="rounded-md p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white">
           <Bell className="h-5 w-5" />
         </button>
-        <button className="rounded-md p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white">
+        {/* <button className="rounded-md p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white">
           <Star className="h-5 w-5" />
-        </button>
+        </button> */}
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">
           P
         </div>

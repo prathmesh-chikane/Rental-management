@@ -28,7 +28,9 @@ export default function Sidebar() {
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-900 text-white">
           <LayoutDashboard className="h-4 w-4" />
         </div>
-        <h1 className="text-xl font-semibold text-black">Property Manager</h1>
+        <h1 className="text-xl font-semibold text-white-900">
+          Property Manager
+        </h1>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4">
