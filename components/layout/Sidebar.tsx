@@ -80,7 +80,7 @@ export default function AppSidebar() {
       <SidebarFooter className="border-t border-white/10 bg-[#111827] p-4">
         <div className="flex items-center gap-3 text-white">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-700 font-semibold">
-            N
+            P
           </div>
           <div>
             <p className="text-sm font-medium">My Account</p>
