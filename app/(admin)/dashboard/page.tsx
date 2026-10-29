@@ -49,9 +49,9 @@ export default function DashboardPage() {
           iconClassName="bg-amber-50 text-amber-700"
         />
         <StatCard
-          title="Balance"
-          value={stats.balance}
-          description="Current account balance"
+          title="Overdue"
+          value={stats.overdue}
+          description="Amount overdue"
           icon={Wallet}
           iconClassName="bg-sky-50 text-sky-700"
         />

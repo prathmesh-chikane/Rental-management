@@ -18,8 +18,9 @@ export default function StatCard({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-sm font-medium text-slate-500">{title}</h3>
+
           <p className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            ₹{value.toLocaleString("en-IN")}
+            ₹{Number(value ?? 0).toLocaleString("en-IN")}
           </p>
         </div>
         <div

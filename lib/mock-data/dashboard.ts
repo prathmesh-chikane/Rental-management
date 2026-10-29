@@ -1,7 +1,7 @@
 export const stats = {
   income: 125000,
   expenses: 42000,
-  balance: 18000,
+  overdue: 18000,
 };
 
 export const rentChart = [
