@@ -6,9 +6,11 @@ export default function StatCard({
   value: number;
 }) {
   return (
-    <div className="rounded-lg border p-4">
-      <h3 className="text-sm text-slate-500">{title}</h3>
-      <p className="text-2xl font-bold">₹{value.toLocaleString("en-IN")}</p>
+    <div className="rounded-xl border border-slate-300 bg-white p-5 shadow-sm">
+      <h3 className="text-sm font-medium text-slate-500">{title}</h3>
+      <p className="mt-3 text-3xl font-bold tracking-tight text-slate-800">
+        ₹{value.toLocaleString("en-IN")}
+      </p>
     </div>
   );
 }
