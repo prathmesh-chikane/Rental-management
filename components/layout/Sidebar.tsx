@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,6 +11,18 @@ import {
   Settings,
 } from "lucide-react";
 
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+
 const menu = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Properties", href: "#", icon: Building2 },
@@ -19,46 +32,62 @@ const menu = [
   { name: "Settings", href: "#", icon: Settings },
 ];
 
-export default function Sidebar() {
+export default function AppSidebar() {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
 
   return (
-    <aside className="hidden w-64 flex-col border-r border-slate-200 bg-black text-white md:flex">
-      <div className="flex items-center gap-3 border-b border-slate-200 px-4 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-900 text-white">
-          <LayoutDashboard className="h-4 w-4" />
+    <Sidebar collapsible="offcanvas" className="bg-[#111827]">
+      <SidebarHeader className="border-b border-white/10 bg-[#111827] p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500">
+            <LayoutDashboard className="h-5 w-5 text-white" />
+          </div>
+          <span className="font-semibold text-white">Property Manager</span>
         </div>
-        <h1 className="text-xl font-semibold text-white-900">
-          Property Manager
-        </h1>
-      </div>
+      </SidebarHeader>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {menu.map((item) => {
-          const isActive = pathname === item.href;
+      <SidebarContent className="bg-[#111827] text-white">
+        <SidebarGroup className="p-3">
+          <SidebarMenu>
+            {menu.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
 
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-[15px] text-black font-medium transition-colors ${
-                isActive
-                  ? "bg-slate-100 text-black shadow-sm"
-                  : "text-white hover:bg-yellow-50 hover:text-slate-900"
-              }`}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
+              return (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton
+                    render={
+                      <Link
+                        href={item.href}
+                        onClick={() => setOpenMobile(false)}
+                      />
+                    }
+                    isActive={isActive}
+                    tooltip={item.name}
+                    className="h-10 w-full text-sm text-slate-300 hover:bg-white/10 hover:text-white data-[active=true]:bg-emerald-500/15 data-[active=true]:text-emerald-300"
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
 
-      <div className="border-t border-slate-200 p-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-          N
+      <SidebarFooter className="border-t border-white/10 bg-[#111827] p-4">
+        <div className="flex items-center gap-3 text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-700 font-semibold">
+            N
+          </div>
+          <div>
+            <p className="text-sm font-medium">My Account</p>
+            <p className="text-xs text-slate-400">Property manager</p>
+          </div>
         </div>
-      </div>
-    </aside>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
