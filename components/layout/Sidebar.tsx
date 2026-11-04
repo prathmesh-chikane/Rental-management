@@ -3,12 +3,25 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  House,
   LayoutDashboard,
   Building2,
-  Users,
-  Wallet,
+  UsersRound,
+  FileText,
+  // ClipboardPlus,
+  WalletCards,
+  // CircleDollarSign,
+  // Receipt,
   Wrench,
+  // ListChecks,
+  Users,
+  // ClipboardCheck,
+  FileChartLine,
   Settings,
+  BanknoteArrowDown,
+  FolderOpen,
+  MessageSquare,
+  Receipt,
 } from "lucide-react";
 
 import {
@@ -22,16 +35,43 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-
-const menu = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Properties", href: "#", icon: Building2 },
-  { name: "Tenants", href: "#", icon: Users },
-  { name: "Finances", href: "#", icon: Wallet },
-  { name: "Maintenance", href: "#", icon: Wrench },
-  { name: "Settings", href: "#", icon: Settings },
+const menuGroups = [
+  {
+    items: [{ name: "Dashboard", href: "/dashboard", icon: House }],
+  },
+  {
+    title: "PROPERTIES",
+    items: [
+      { name: "Properties & Units", href: "/properties", icon: Building2 },
+      { name: "Tenants", href: "/tenants", icon: UsersRound },
+      { name: "Leases", href: "/leases", icon: FileText },
+      { name: "Maintenance", href: "/maintenance", icon: Wrench },
+      { name: "Documents", href: "/documents", icon: FolderOpen },
+    ],
+  },
+  {
+    title: "PAYMENTS",
+    items: [
+      { name: "Rent & Payments", href: "/rent-payments", icon: WalletCards },
+      { name: "Expenses", href: "/expenses", icon: BanknoteArrowDown },
+      { name: "Billing & Payments", href: "/billing", icon: Receipt },
+    ],
+  },
+  {
+    title: "REPORTS",
+    items: [
+      { name: "Reports & Analytics", href: "/reports", icon: FileChartLine },
+      { name: "Communication", href: "/communication", icon: MessageSquare },
+    ],
+  },
+  {
+    title: "MANAGEMENT",
+    items: [
+      { name: "Staff & Vendors", href: "/staff-vendors", icon: Users },
+      { name: "Settings", href: "/settings", icon: Settings },
+    ],
+  },
 ];
-
 export default function AppSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
@@ -48,33 +88,50 @@ export default function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="bg-[#111827] text-white">
-        <SidebarGroup className="p-3">
-          <SidebarMenu>
-            {menu.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
+        {menuGroups.map((group) => (
+          <SidebarGroup key={group.title || "main"} className="px-3 py-1">
+            {group.title && (
+              <p className="px-3 pb-2 pt-3 text-xs font-medium text-slate-400">
+                {group.title}
+              </p>
+            )}
 
-              return (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton
-                    render={
-                      <Link
-                        href={item.href}
-                        onClick={() => setOpenMobile(false)}
-                      />
-                    }
-                    isActive={isActive}
-                    tooltip={item.name}
-                    className="h-10 w-full text-sm text-slate-300 hover:bg-white/10 hover:text-white data-[active=true]:bg-emerald-500/15 data-[active=true]:text-emerald-300"
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.name}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </SidebarGroup>
+            <SidebarMenu>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+
+                const isActive =
+                  pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
+
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton
+                      render={
+                        <Link
+                          href={item.href}
+                          onClick={() => setOpenMobile(false)}
+                        />
+                      }
+                      isActive={isActive}
+                      tooltip={item.name}
+                      className={`
+                  h-11 w-full text-base
+                  ${isActive
+                          ? "bg-gray-600 text-white hover:bg-gray-400 hover:text-white"
+                          : "text-slate-300 hover:bg-white/10 hover:text-white"
+                        }
+                `}
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-white/10 bg-[#111827] p-4">
