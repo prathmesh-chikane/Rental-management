@@ -54,7 +54,7 @@ const menuGroups = [
     items: [
       { name: "Rent & Payments", href: "/rent-payments", icon: WalletCards },
       { name: "Expenses", href: "/expenses", icon: BanknoteArrowDown },
-      { name: "Billing & Payments", href: "/billing", icon: Receipt },
+      { name: "Billing & Invoices", href: "/billing&Invoice", icon: Receipt },
     ],
   },
   {

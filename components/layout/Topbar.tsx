@@ -1,3 +1,4 @@
+
 import { Bell, Search, ChevronDown } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Topbar() {
   return (
-    <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6">
+    <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6">
       {/* Left Section: Sidebar + Search */}
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <SidebarTrigger

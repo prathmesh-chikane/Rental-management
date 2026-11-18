@@ -5,7 +5,12 @@ import { AppController } from './app.controller.js';
 import { UsersModule } from './users/users.module.js';
 import { OrganizationsModule } from './organizations/organizations.module.js';
 import { AuthModule } from './auth/auth.module.js';
-
+import { PropertiesModule } from './properties/properties.module.js';
+import { TenantsModule } from './tenants/tenants.module.js';
+import { UnitsModule } from './Units/units.module.js';
+import { RedisModule } from './redis/redis.service.js';
+import { LeasesModule } from './leases/leases.module.js';
+import { InvoicesModule } from './invoices/invoices.module.js';
 
 @Module({
   imports: [
@@ -14,11 +19,14 @@ import { AuthModule } from './auth/auth.module.js';
       envFilePath: '.env',
     }),
 
+    RedisModule,
+
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri: configService.getOrThrow<string>('MONGODB_URI'),
         serverSelectionTimeoutMS: 5000,
+        lazyConnection: true,
       }),
     }),
 
@@ -27,8 +35,18 @@ import { AuthModule } from './auth/auth.module.js';
     OrganizationsModule,
 
     AuthModule,
+
+    PropertiesModule,
+
+    UnitsModule,
+
+    TenantsModule,
+
+    LeasesModule,
+
+    InvoicesModule,
   ],
   controllers: [AppController],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

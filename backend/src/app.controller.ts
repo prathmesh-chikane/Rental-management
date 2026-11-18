@@ -7,19 +7,27 @@ export class AppController {
   constructor(
     @InjectConnection()
     private readonly connection: mongoose.Connection,
-  ) { }
+  ) {}
+
+  @Get()
+  getRoot() {
+    return this.checkHealth();
+  }
 
   @Get('health')
   checkHealth() {
-    const connected = this.connection.readyState === 1;
+    const isDbConnected = this.connection.readyState === 1;
 
     return {
-      success: connected,
-      message: connected
-        ? 'MongoDB connected successfully!'
-        : 'MongoDB is not connected',
-      database: this.connection.name,
-      status: connected ? 'Connected' : 'Disconnected',
+      success: true,
+      backend: 'Connected',
+      database: isDbConnected ? 'Connected' : 'Disconnected',
+      databaseName: this.connection.name || 'rental_management_db',
+      message: isDbConnected
+        ? 'Backend and MongoDB connected successfully!'
+        : 'Backend is running, but MongoDB is not connected',
+      status: isDbConnected ? 'Connected' : 'Disconnected',
+      timestamp: new Date().toISOString(),
     };
   }
 }
