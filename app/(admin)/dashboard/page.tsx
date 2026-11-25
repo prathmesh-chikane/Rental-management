@@ -88,6 +88,16 @@ type TicketRow = {
   createdAt: string; // ISO date
 };
 
+type MaintenanceApiTicket = {
+  _id: string;
+  title: string;
+  propertyName: string;
+  unit?: string;
+  priority: string;
+  status: string;
+  createdAt: string;
+};
+
 type TrendRow = {
   month: string; // like "2026-06"
   billed: number; // rupees
@@ -290,10 +300,11 @@ export default function DashboardPage() {
 
     try {
       // 1. Fetch properties, leases, and invoices simultaneously
-      const [propsRes, leasesRes, invoicesRes] = await Promise.allSettled([
+      const [propsRes, leasesRes, invoicesRes, ticketsRes] = await Promise.allSettled([
         api.get<Property[] | { data: Property[] }>("/properties"),
-        api.get<any[]>("/leases"),
+        api.get<any[] | { data: any[] }>("/leases"),
         api.get<any[]>("/invoices"),
+        api.get<MaintenanceApiTicket[] | { data: MaintenanceApiTicket[] }>("/maintenance"),
       ]);
 
       if (propsRes.status === "fulfilled") {
@@ -307,25 +318,83 @@ export default function DashboardPage() {
       let newPayments: PaymentRow[] = [];
       let newOverdue: OverdueRow[] = [];
       let newTrend: TrendRow[] = [];
+      let newTickets: TicketRow[] = [];
 
-      if (leasesRes.status === "fulfilled" && Array.isArray(leasesRes.value)) {
-        const leases = leasesRes.value;
+      if (ticketsRes.status === "fulfilled") {
+        const response = ticketsRes.value;
+
+        const tickets = Array.isArray(response)
+          ? response
+          : response.data || [];
+
+        newTickets = tickets
+          .filter(
+            (ticket) => ticket.status?.toLowerCase() === "open"
+          )
+          .map((ticket) => ({
+            id: ticket._id,
+            title: ticket.title,
+            propertyName: ticket.propertyName || "Unknown Property",
+            unitLabel: ticket.unit || "-",
+            priority: (
+              ["urgent", "high", "medium", "low"].includes(
+                ticket.priority?.toLowerCase()
+              )
+                ? ticket.priority.toLowerCase()
+                : "medium"
+            ) as TicketRow["priority"],
+            createdAt: ticket.createdAt,
+          }));
+      }
+
+
+      if (leasesRes.status === "fulfilled") {
+        const response = leasesRes.value;
+
+        const leases = Array.isArray(response)
+          ? response
+          : response?.data || [];
+
+        // आजची तारीख (Local date)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // पुढील 30 दिवस
+        const limit = new Date(today);
+        limit.setDate(limit.getDate() + 30);
+
+        const formatLocalDate = (date: Date) =>
+          `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+        const todayString = formatLocalDate(today);
+        const limitString = formatLocalDate(limit);
+
         newLeases = leases
-          .filter((l: any) => l.status === "Active" || l.status === "Expiring Soon")
           .map((l: any) => {
-            const end = new Date(l.endDate || Date.now());
-            const diffDays = Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+            const endDate = String(l.endDate || "").slice(0, 10);
+
+            const end = new Date(`${endDate}T00:00:00`);
+
+            const diffDays = Math.ceil(
+              (end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+            );
+
             return {
-              id: l._id || l.leaseNumber || Math.random().toString(),
+              id: l._id || l.id || l.leaseNumber,
               tenantName: l.tenantName || "Unknown Tenant",
               propertyName: l.propertyName || "Unknown Property",
               unitLabel: l.unit || "-",
-              endDate: l.endDate || new Date().toISOString(),
-              daysLeft: Math.max(0, diffDays),
+              endDate,
+              daysLeft: diffDays,
             };
           })
-          .filter((l: LeaseRow) => l.daysLeft <= 60);
+          .filter(
+            (l: LeaseRow) =>
+              l.endDate >= todayString &&
+              l.endDate <= limitString
+          );
       }
+
 
       if (invoicesRes.status === "fulfilled" && Array.isArray(invoicesRes.value)) {
         const invoices = invoicesRes.value;
@@ -387,6 +456,7 @@ export default function DashboardPage() {
         payments: newPayments,
         overdue: newOverdue,
         trend: newTrend,
+        tickets: newTickets,
       }));
 
       setUpdatedAt(
@@ -528,7 +598,7 @@ export default function DashboardPage() {
             <StatCard
               label="Expiring Leases"
               value={String(extras.leases.length)}
-              hint="Ending in 60 days"
+              hint="Ending in 30 days"
               icon={CalendarClock}
               color="text-amber-700"
               bg="bg-amber-100"
@@ -710,12 +780,12 @@ export default function DashboardPage() {
             </Section>
 
             <div className="space-y-6">
-              <Section title="Leases Ending Soon" description="Next 60 days" href="/leases">
+              <Section title="Leases Ending Soon" description="Next 30 days" href="/leases">
                 {extras.leases.length === 0 ? (
                   <EmptyState
                     icon={CalendarClock}
                     title="No leases ending soon"
-                    text="Leases that end within 60 days will appear here."
+                    text="Leases that end within 30 days will appear here."
                   />
                 ) : (
                   <ul className="space-y-2.5">

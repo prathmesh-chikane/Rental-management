@@ -8,9 +8,10 @@ import { AuthModule } from './auth/auth.module.js';
 import { PropertiesModule } from './properties/properties.module.js';
 import { TenantsModule } from './tenants/tenants.module.js';
 import { UnitsModule } from './Units/units.module.js';
-import { RedisModule } from './redis/redis.service.js';
 import { LeasesModule } from './leases/leases.module.js';
 import { InvoicesModule } from './invoices/invoices.module.js';
+import { MaintenanceModule } from './maintenance/maintenance.module.js';
+import { StaffModule } from './staff-venders/staff.module.js';
 
 @Module({
   imports: [
@@ -18,8 +19,6 @@ import { InvoicesModule } from './invoices/invoices.module.js';
       isGlobal: true,
       envFilePath: '.env',
     }),
-
-    RedisModule,
 
     MongooseModule.forRootAsync({
       inject: [ConfigService],
@@ -45,8 +44,12 @@ import { InvoicesModule } from './invoices/invoices.module.js';
     LeasesModule,
 
     InvoicesModule,
+
+    MaintenanceModule,
+
+    StaffModule,
   ],
   controllers: [AppController],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

@@ -47,9 +47,9 @@ export class UpdateLeaseDto {
   @IsOptional()
   rentDueDay?: number;
 
-  @IsEnum(['Active', 'Expiring Soon', 'Terminated', 'Draft'])
+  @IsEnum(['Active', 'Expiring Soon', 'Expired'])
   @IsOptional()
-  status?: 'Active' | 'Expiring Soon' | 'Terminated' | 'Draft';
+  status?: 'Active' | 'Expiring Soon' | 'Expired';
 
   @IsString()
   @IsOptional()

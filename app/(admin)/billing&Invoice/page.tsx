@@ -15,6 +15,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import jsPDF from "jspdf";
 import {
   AlertCircle,
   Building2,
@@ -91,80 +92,7 @@ export type Invoice = {
   notes?: string;
 };
 
-const INITIAL_FALLBACK_INVOICES: Invoice[] = [
-  {
-    id: "inv-1",
-    invoiceNo: "INV-2026-1101",
-    tenantName: "Vikram Joshi",
-    propertyName: "Greenfield Heights",
-    unit: "Flat 204",
-    amount: 42000,
-    issueDate: "2026-11-01",
-    dueDate: "2026-11-05",
-    paidDate: "2026-11-03",
-    paymentMethod: "UPI",
-    status: "Paid",
-  },
-  {
-    id: "inv-2",
-    invoiceNo: "INV-2026-1102",
-    tenantName: "Neha Kapoor",
-    propertyName: "Royal Palms Residency",
-    unit: "Villa 02",
-    amount: 85000,
-    issueDate: "2026-11-01",
-    dueDate: "2026-11-05",
-    paidDate: "2026-11-04",
-    paymentMethod: "Bank Transfer",
-    status: "Paid",
-  },
-  {
-    id: "inv-3",
-    invoiceNo: "INV-2026-1103",
-    tenantName: "Sunita Verma",
-    propertyName: "Greenfield Heights",
-    unit: "Flat 101",
-    amount: 18000,
-    issueDate: "2026-11-01",
-    dueDate: "2026-11-05",
-    status: "Overdue",
-  },
-  {
-    id: "inv-4",
-    invoiceNo: "INV-2026-1104",
-    tenantName: "Imran Sheikh",
-    propertyName: "Lakeview Towers",
-    unit: "Flat 806",
-    amount: 52000,
-    issueDate: "2026-11-01",
-    dueDate: "2026-11-07",
-    status: "Overdue",
-  },
-  {
-    id: "inv-5",
-    invoiceNo: "INV-2026-1105",
-    tenantName: "Rohan Kulkarni",
-    propertyName: "Silver Oak Enclave",
-    unit: "Studio 105",
-    amount: 14000,
-    issueDate: "2026-11-01",
-    dueDate: "2026-11-05",
-    status: "Overdue",
-  },
-  {
-    id: "inv-6",
-    invoiceNo: "INV-2026-1106",
-    tenantName: "Priya Nair",
-    propertyName: "Greenfield Heights",
-    unit: "Flat 310",
-    amount: 38000,
-    issueDate: "2026-11-01",
-    dueDate: "2026-11-05",
-    paidDate: "2026-11-02",
-    paymentMethod: "UPI",
-    status: "Paid",
-  },
-];
+const INITIAL_FALLBACK_INVOICES: Invoice[] = [];
 
 const LOCAL_STORAGE_KEY = "rental_management_actual_invoices";
 
@@ -202,12 +130,7 @@ export default function BillingPage() {
         setProperties(pList.map((p) => p.name));
       }
     } catch {
-      setProperties([
-        "Greenfield Heights",
-        "Lakeview Towers",
-        "Royal Palms Residency",
-        "Silver Oak Enclave",
-      ]);
+      setProperties([]);
     }
 
     // २. Load Real Tenants
@@ -270,7 +193,7 @@ export default function BillingPage() {
     resolver: zodResolver(invoiceSchema),
     defaultValues: {
       tenantName: "",
-      propertyName: "Greenfield Heights",
+      propertyName: "shree Heights",
       unit: "",
       amount: 40000,
       dueDate: "",
@@ -364,6 +287,221 @@ export default function BillingPage() {
     saveToLocal(updated);
   };
 
+
+  const handleDownloadInvoice = (item: Invoice) => {
+    type RGB = [number, number, number];
+
+    const COMPANY = {
+      name: "Brahmaastra",
+      tagline: "Rental Management System",
+      address: "vashi satra plaza 19D 10 ",
+      phone: "+91 98765 43210",
+      email: "billing@rentflow.in",
+      website: "www.rentflow.in",
+      gstin: "",
+      paymentInstructions: [
+        "Bank: Your Bank Name",
+        " A/C: XXXXXXXXXXXX ",
+        "IFSC: XXXX0000000",
+        "UPI: rentflow@upi",
+      ],
+      terms:
+        "Rent is due on or before the due date. Late payments may attract charges as per the lease agreement.",
+    };
+
+    const C = {
+      ink: [15, 23, 42] as RGB,
+      head: [30, 41, 59] as RGB,
+      accent: [79, 70, 229] as RGB,
+      muted: [100, 116, 139] as RGB,
+      line: [226, 232, 240] as RGB,
+      white: [255, 255, 255] as RGB,
+    };
+
+    const STATUS: Record<string, { label: string; color: RGB }> = {
+      paid: { label: "PAID", color: [22, 163, 74] },
+      unpaid: { label: "UNPAID", color: [217, 119, 6] },
+      overdue: { label: "OVERDUE", color: [220, 38, 38] },
+    };
+
+    const formatMoney = (value: number) =>
+      `Rs. ${value.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+
+    const formatDate = (value?: string) => {
+      if (!value) return "-";
+      const d = new Date(value);
+      return isNaN(d.getTime())
+        ? value
+        : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    };
+
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const M = 48; // page margin
+    const R = W - M; // right edge
+
+    const statusKey = String(item.status).toLowerCase();
+    const status = STATUS[statusKey] ?? {
+      label: String(item.status).toUpperCase(),
+      color: C.muted,
+    };
+    const amount = Number(item.amount) || 0;
+    const paid = statusKey === "paid" ? amount : 0;
+    const balance = amount - paid;
+
+    const setText = (color: RGB, size: number, style: "normal" | "bold" = "normal") => {
+      doc.setTextColor(...color);
+      doc.setFontSize(size);
+      doc.setFont("helvetica", style);
+    };
+
+    // Top accent bar
+    doc.setFillColor(...C.head);
+    doc.rect(0, 0, W, 6, "F");
+
+    // Company block (left)
+    setText(C.ink, 20, "bold");
+    doc.text(COMPANY.name, M, 70);
+    setText(C.muted, 9);
+    let y = 84;
+    doc.text(COMPANY.tagline, M, y);
+    y += 12;
+    doc.text(COMPANY.address, M, y);
+    y += 12;
+    doc.text(`${COMPANY.phone}  |  ${COMPANY.email}`, M, y);
+    y += 12;
+    doc.text(COMPANY.website, M, y);
+    if (COMPANY.gstin) {
+      y += 12;
+      doc.text(`GSTIN: ${COMPANY.gstin}`, M, y);
+    }
+
+    // Invoice title, number and status badge (right)
+    setText(C.head, 26, "bold");
+    doc.text("INVOICE", R, 66, { align: "right" });
+    setText(C.muted, 9);
+    doc.text(`No. ${item.invoiceNo}`, R, 82, { align: "right" });
+
+    const badgeW = 84;
+    doc.setFillColor(...status.color);
+    doc.roundedRect(R - badgeW, 92, badgeW, 20, 3, 3, "F");
+    setText(C.white, 9, "bold");
+    doc.text(status.label, R - badgeW / 2, 105, { align: "center" });
+
+    // Divider
+    doc.setDrawColor(...C.line);
+    doc.setLineWidth(0.8);
+    doc.line(M, 130, R, 130);
+
+    // Bill to (left) and invoice details (right)
+    const colRight = R - 230;
+    setText(C.accent, 8, "bold");
+    doc.text("BILL TO", M, 152);
+    setText(C.ink, 12, "bold");
+    doc.text(String(item.tenantName), M, 170);
+    setText(C.muted, 9);
+    doc.text(`Property: ${item.propertyName}`, M, 185);
+    doc.text(`Unit: ${item.unit}`, M, 199);
+
+    setText(C.accent, 8, "bold");
+    doc.text("INVOICE DETAILS", colRight, 152);
+    const meta: [string, string][] = [
+      ["Issue date", formatDate(item.issueDate)],
+      ["Due date", formatDate(item.dueDate)],
+      ["Paid date", item.paidDate ? formatDate(item.paidDate) : "-"],
+      ["Payment method", item.paymentMethod || "Not recorded"],
+    ];
+    meta.forEach(([label, value], i) => {
+      const metaY = 170 + i * 15;
+      setText(C.muted, 9);
+      doc.text(label, colRight, metaY);
+      setText(C.ink, 9, "bold");
+      doc.text(value, R, metaY, { align: "right" });
+    });
+
+    // Line items table
+    const tableY = 240;
+    doc.setFillColor(...C.head);
+    doc.rect(M, tableY, R - M, 26, "F");
+    setText(C.white, 9, "bold");
+    doc.text("DESCRIPTION", M + 12, tableY + 17);
+    doc.text("QTY", R - 170, tableY + 17, { align: "center" });
+    doc.text("AMOUNT", R - 12, tableY + 17, { align: "right" });
+
+    const rowY = tableY + 26;
+    const noteLines = doc.splitTextToSize(item.notes || "", 300) as string[];
+    const rowH = Math.max(50, 36 + noteLines.length * 12);
+    doc.setDrawColor(...C.line);
+    doc.line(M, rowY + rowH, R, rowY + rowH);
+
+    setText(C.ink, 10, "bold");
+    doc.text(`Rent - Unit ${item.unit}`, M + 12, rowY + 20);
+    setText(C.muted, 9);
+    doc.text(String(item.propertyName), M + 12, rowY + 34);
+    if (noteLines.length) doc.text(noteLines, M + 12, rowY + 46);
+
+    setText(C.ink, 10);
+    doc.text("1", R - 170, rowY + 20, { align: "center" });
+    setText(C.ink, 10, "bold");
+    doc.text(formatMoney(amount), R - 12, rowY + 20, { align: "right" });
+
+    // Totals (right)
+    const labelX = R - 200;
+    let ty = rowY + rowH + 18;
+    const totalRow = (label: string, value: string) => {
+      setText(C.muted, 9);
+      doc.text(label, labelX, ty);
+      setText(C.ink, 9, "bold");
+      doc.text(value, R - 12, ty, { align: "right" });
+      ty += 18;
+    };
+    totalRow("Subtotal", formatMoney(amount));
+    totalRow("Amount paid", formatMoney(paid));
+
+    const boxY = ty - 2;
+    doc.setFillColor(...C.head);
+    doc.roundedRect(labelX - 12, boxY, R - labelX + 12, 30, 3, 3, "F");
+    setText(C.white, 10, "bold");
+    doc.text(balance > 0 ? "BALANCE DUE" : "TOTAL PAID", labelX, boxY + 19);
+    doc.text(formatMoney(balance > 0 ? balance : amount), R - 12, boxY + 19, {
+      align: "right",
+    });
+
+    // Payment instructions (left, aligned with totals)
+    setText(C.accent, 8, "bold");
+    doc.text("PAYMENT INSTRUCTIONS", M, boxY);
+    setText(C.muted, 9);
+    COMPANY.paymentInstructions.forEach((line, i) => {
+      doc.text(line, M, boxY + 16 + i * 12);
+    });
+
+    // Terms and footer
+    const footerY = H - 64;
+    doc.setDrawColor(...C.line);
+    doc.line(M, footerY, R, footerY);
+
+    setText(C.accent, 8, "bold");
+    doc.text("TERMS", M, footerY + 16);
+    setText(C.muted, 8);
+    const termLines = doc.splitTextToSize(COMPANY.terms, R - M) as string[];
+    doc.text(termLines, M, footerY + 28);
+
+    setText(C.ink, 9, "bold");
+    doc.text(`Thank you for choosing ${COMPANY.name}!`, W / 2, footerY + 46, { align: "center" });
+    setText(C.muted, 7.5);
+    doc.text(
+      "This is a computer-generated invoice and does not require a signature.",
+      W / 2,
+      footerY + 57,
+      { align: "center" }
+    );
+
+    doc.save(`${item.invoiceNo}.pdf`);
+  };
   // ---------------------------------------------------------------------------
   // बिल डिलीट करणे (DELETE /trishul/invoices/:id)
   // ---------------------------------------------------------------------------
@@ -523,11 +661,10 @@ export default function BillingPage() {
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`rounded-xl px-3 py-2 text-xs font-bold transition-all ${
-                statusFilter === status
-                  ? "bg-slate-900 text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
+              className={`rounded-xl px-3 py-2 text-xs font-bold transition-all ${statusFilter === status
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
             >
               {status}
             </button>
@@ -587,13 +724,12 @@ export default function BillingPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold ${
-                            item.status === "Paid"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : item.status === "Overdue"
-                                ? "bg-rose-50 text-rose-700 border-rose-200"
-                                : "bg-amber-50 text-amber-700 border-amber-200"
-                          }`}
+                          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold ${item.status === "Paid"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : item.status === "Overdue"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : "bg-amber-50 text-amber-700 border-amber-200"
+                            }`}
                         >
                           {item.status}
                         </span>
@@ -610,8 +746,10 @@ export default function BillingPage() {
                             </button>
                           )}
                           <button
+                            type="button"
                             title="Download Invoice"
-                            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                            onClick={() => handleDownloadInvoice(item)}
+                            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
                           >
                             <Download className="h-4 w-4" />
                           </button>
@@ -639,9 +777,7 @@ export default function BillingPage() {
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl sm:p-8">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <span className="inline-block rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-black uppercase tracking-wider text-indigo-700">
-                  MongoDB Backend + React Hook Form
-                </span>
+
                 <h3 className="mt-1 text-xl font-bold text-slate-900">
                   Generate Rent Invoice
                 </h3>
@@ -676,11 +812,10 @@ export default function BillingPage() {
                     type="text"
                     placeholder="e.g. Vikram Joshi"
                     {...register("tenantName")}
-                    className={`mt-1.5 h-10 w-full rounded-xl border bg-white px-3.5 text-sm font-medium outline-none transition-all ${
-                      errors.tenantName
-                        ? "border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-100"
-                        : "border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
-                    }`}
+                    className={`mt-1.5 h-10 w-full rounded-xl border bg-white px-3.5 text-sm font-medium outline-none transition-all ${errors.tenantName
+                      ? "border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-100"
+                      : "border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                      }`}
                   />
                 )}
                 {errors.tenantName && (
@@ -720,11 +855,10 @@ export default function BillingPage() {
                     type="text"
                     placeholder="e.g. Flat 204"
                     {...register("unit")}
-                    className={`mt-1.5 h-10 w-full rounded-xl border bg-white px-3.5 text-sm font-medium outline-none transition-all ${
-                      errors.unit
-                        ? "border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-100"
-                        : "border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
-                    }`}
+                    className={`mt-1.5 h-10 w-full rounded-xl border bg-white px-3.5 text-sm font-medium outline-none transition-all ${errors.unit
+                      ? "border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-100"
+                      : "border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                      }`}
                   />
                   {errors.unit && (
                     <p className="mt-1 text-xs font-semibold text-red-600">
@@ -743,11 +877,10 @@ export default function BillingPage() {
                     type="number"
                     placeholder="42000"
                     {...register("amount", { valueAsNumber: true })}
-                    className={`mt-1.5 h-10 w-full rounded-xl border px-3.5 text-sm font-medium outline-none transition-all ${
-                      errors.amount
-                        ? "border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-100"
-                        : "border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
-                    }`}
+                    className={`mt-1.5 h-10 w-full rounded-xl border px-3.5 text-sm font-medium outline-none transition-all ${errors.amount
+                      ? "border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-100"
+                      : "border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                      }`}
                   />
                   {errors.amount && (
                     <p className="mt-1 text-xs font-semibold text-red-600">
@@ -763,11 +896,10 @@ export default function BillingPage() {
                   <input
                     type="date"
                     {...register("dueDate")}
-                    className={`mt-1.5 h-10 w-full rounded-xl border px-3 text-sm font-medium outline-none transition-all ${
-                      errors.dueDate
-                        ? "border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-100"
-                        : "border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
-                    }`}
+                    className={`mt-1.5 h-10 w-full rounded-xl border px-3 text-sm font-medium outline-none transition-all ${errors.dueDate
+                      ? "border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-100"
+                      : "border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100"
+                      }`}
                   />
                   {errors.dueDate && (
                     <p className="mt-1 text-xs font-semibold text-red-600">

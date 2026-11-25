@@ -1,29 +1,20 @@
 
-import { Bell, Search, ChevronDown } from "lucide-react";
-
+import { Bell, ChevronRight, ChevronDown } from "lucide-react";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
+
 
 export default function Topbar() {
   return (
-    <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6">
+    <header className="sticky top-0 z-50 flex h-15 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm sm:px-6">
       {/* Left Section: Sidebar + Search */}
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <SidebarTrigger
           aria-label="Toggle navigation"
           className="shrink-0 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
         />
-
-        <div className="w-full max-w-md">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-
-            <Input
-              placeholder="Search anything..."
-              className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 text-sm placeholder:text-slate-500 focus-visible:border-blue-500 focus-visible:ring-blue-500/20"
-            />
-          </div>
-        </div>
       </div>
 
       {/* Right Section: Notifications + Profile */}

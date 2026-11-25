@@ -52,9 +52,9 @@ export class Lease {
 
   @Prop({
     default: 'Active',
-    enum: ['Active', 'Expiring Soon', 'Terminated', 'Draft'],
+    enum: ['Active', 'Expiring Soon', 'Expired'],
   })
-  status: 'Active' | 'Expiring Soon' | 'Terminated' | 'Draft';
+  status: 'Active' | 'Expiring Soon' | 'Expired';
 
   @Prop({ default: '' })
   documentUrl?: string;
