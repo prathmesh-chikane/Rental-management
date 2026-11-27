@@ -509,7 +509,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-slate-950">Dashboard</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Live overview of your portfolio{updatedAt ? ` · updated ${updatedAt}` : ""}
+          Live overview of your Panel{updatedAt ? ` · updated ${updatedAt}` : ""}
         </p>
       </div>
 
@@ -575,7 +575,7 @@ export default function DashboardPage() {
               icon={Banknote}
               color="text-emerald-700"
               bg="bg-emerald-100"
-              href="/payments"
+              href="/billing&Invoice"
             />
             <StatCard
               label="Outstanding"

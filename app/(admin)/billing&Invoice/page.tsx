@@ -559,7 +559,7 @@ export default function BillingPage() {
             Billing & Invoices
           </h1>
           <p className="mt-1 text-sm font-medium text-slate-500">
-            Real MongoDB Data · {invoices.length} Total Invoices · Track payments and dues
+            Track payments and dues
           </p>
         </div>
 

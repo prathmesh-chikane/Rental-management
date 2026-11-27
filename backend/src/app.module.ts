@@ -12,6 +12,7 @@ import { LeasesModule } from './leases/leases.module.js';
 import { InvoicesModule } from './invoices/invoices.module.js';
 import { MaintenanceModule } from './maintenance/maintenance.module.js';
 import { StaffModule } from './staff-venders/staff.module.js';
+import { ExpensesModule } from './expenses/expenses.module.js';
 
 @Module({
   imports: [
@@ -19,7 +20,6 @@ import { StaffModule } from './staff-venders/staff.module.js';
       isGlobal: true,
       envFilePath: '.env',
     }),
-
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -48,6 +48,9 @@ import { StaffModule } from './staff-venders/staff.module.js';
     MaintenanceModule,
 
     StaffModule,
+
+    ExpensesModule,
+
   ],
   controllers: [AppController],
   providers: [],
